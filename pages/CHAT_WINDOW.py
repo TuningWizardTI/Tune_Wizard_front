@@ -1,15 +1,13 @@
 import streamlit as st
 import requests
-from dotenv import load_dotenv
 import os
 
 # 페이지 설정
 st.set_page_config(page_title="튜닝마법사 챗봇", page_icon="🧙🏻")
 
 # 환경변수 로드
-load_dotenv()
-API_URL = os.getenv("API_URL", "http://ec2-54-180-99-177.ap-northeast-2.compute.amazonaws.com:8080/api/v1/chatGPT/callPrompt")
-API_TABLE_URL = os.getenv("TABLE_URL", "http://ec2-54-180-99-177.ap-northeast-2.compute.amazonaws.com:8080/api/v1/chatGPT/tableList")
+API_URL = "http://ec2-54-180-99-177.ap-northeast-2.compute.amazonaws.com:8080/api/v1/chatGPT/callPrompt"
+API_TABLE_URL = "http://ec2-54-180-99-177.ap-northeast-2.compute.amazonaws.com:8080/api/v1/chatGPT/tableList"
 
 # Content Type이 정상적으로 세팅되는 현상 해결
 headers = {

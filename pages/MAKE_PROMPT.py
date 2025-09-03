@@ -10,8 +10,8 @@ st.set_page_config(page_title="Make Prompt - SQL 튜닝", layout="wide")
 st.title("🛠 Make Prompt (SQL 튜닝용)")
 
 # 호출 API URL목록
-API_TABLE_URL = os.getenv("TABLE_URL", "http://ec2-54-180-99-177.ap-northeast-2.compute.amazonaws.com:8080/api/v1/chatGPT/tableList")
-API_URL = os.getenv("API_URL", "http://ec2-54-180-99-177.ap-northeast-2.compute.amazonaws.com:8080/api/v1/chatGPT/tableInfoList")
+API_TABLE_URL = "http://ec2-54-180-99-177.ap-northeast-2.compute.amazonaws.com:8080/api/v1/chatGPT/tableList"
+API_URL = "http://ec2-54-180-99-177.ap-northeast-2.compute.amazonaws.com:8080/api/v1/chatGPT/tableInfoList"
 headers = {
     "Content-Type":"application/json"
 }
