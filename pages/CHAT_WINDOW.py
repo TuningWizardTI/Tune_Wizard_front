@@ -6,8 +6,8 @@ import os
 st.set_page_config(page_title="튜닝마법사 챗봇", page_icon="🧙🏻")
 
 # 환경변수 로드
-API_URL = "http://localhost:8080/api/v1/chatGPT/callPrompt"
-API_TABLE_URL = "http://localhost:8080/api/v1/chatGPT/tableList"
+API_URL = "http://localhost:8088/api/v1/chatGPT/callPrompt"
+API_TABLE_URL = "http://localhost:8088/api/v1/chatGPT/tableList"
 
 # Content Type이 정상적으로 세팅되는 현상 해결
 headers = {
@@ -29,7 +29,7 @@ try:
 except Exception as e:
     st.warning(f"테이블 목록을 불러오지 못했습니다: {e}")
     table_options = ["SQL 튜닝", "힌트 설명", "실행계획 분석"]
-table_options.append("쿼리 외 질문 시 여기를 선택해주세요")
+table_options.append("기타")
 
 st.caption("👇 사용할 테이블을 선택한 후 질문을 입력하세요.")
 table_name = st.selectbox(
@@ -37,6 +37,9 @@ table_name = st.selectbox(
     table_options,
     index=0
 )
+if table_name == "기타" :
+    table_name = "none"
+
 # 채팅 기록 저장용 세션 상태 초기화
 if 'message_list' not in st.session_state:
     st.session_state.message_list = []
