@@ -62,7 +62,7 @@ st.dataframe(table_schemas[table_name])
 # 튜닝 목적 선택
 tuning_goal = st.selectbox(
     "🎯 튜닝 목적을 선택하세요",
-    ["인덱스 추천", "조인 순서 최적화", "실행계획 분석", "쿼리 리팩토링", "쿼리생성"]
+    ["쿼리 튜닝", "인덱스 추천", "실행계획 분석", "힌트 추천"]
 )
 
 
@@ -72,7 +72,7 @@ user_input = st.text_area("✏️ 조건 또는 설명 입력 (선택)", placeho
 
 # 프롬프트 생성
 if st.button("🚀 프롬프트 생성"):
-    prompt = f"""당신은 SQL 성능 튜닝 전문가입니다.
+    prompt = f"""당신은 SQL 튜닝 전문가입니다.
 튜닝 대상 테이블: [{table_name}]
 컬럼 정보:
 {table_schemas[table_name].to_markdown(index=False)}
@@ -82,7 +82,7 @@ if st.button("🚀 프롬프트 생성"):
     if user_input.strip():
         prompt += f"\n추가 설명: {user_input.strip()}"
 
-    prompt += "\n\n이 정보를 바탕으로 튜닝된 SQL이나 인사이트를 제시해주세요."
+    prompt += "\n\n이 정보를 바탕으로 튜닝된 SQL이나 힌트 혹은 인덱스를 제시해주세요."
 
     # 결과 출력
     st.subheader("🧾 생성된 프롬프트")
