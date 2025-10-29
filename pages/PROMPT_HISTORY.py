@@ -2,7 +2,28 @@ import os
 import requests
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+import datetime
+
+# ✅ 추가: 인증 유틸에서 현재 사용자 정보/가드 가져오기
+from auth.session import require_auth, touch_activity, current_user
+
+hide_pages_style = """
+<style>
+/* 사이드바 네비게이션 목록 중 특정 페이지 숨기기 */
+[data-testid="stSidebarNav"] ul li a[href$="SIGNUP"] {
+    display: none;
+}
+[data-testid="stSidebarNav"] ul li a[href$="LOGIN"] {
+    display: none;
+}
+</style>
+"""
+
+st.markdown(hide_pages_style, unsafe_allow_html=True)
+
+# ✅ 로그인 가드 + 활동 갱신
+require_auth()
+touch_activity()
 
 # -----------------------------
 # Page config
@@ -15,15 +36,31 @@ st.set_page_config(page_title="🧙🏻 튜닝마법사 - 프롬프트 이력", 
 API_BASE = os.getenv("API_URL", "http://localhost:8080/api/v1/chatGPT/promptHistory")
 DATE_FMT = "%Y-%m-%d %H:%M:%S"
 
+# ✅ 현재 로그인 사용자 (백엔드에서 인증 완료 후 로그인할 때 session에 보관해둔 값)
+#user = current_user() or {}
+userId = st.session_state['auth']['user']  # ← 여기서 아이디를 얻습니다.
+name = st.session_state['auth']['userName']
+
+# 사이드바에 로그인 사용자 표시 (선택)
+with st.sidebar:
+    st.markdown("### 👤 로그인 정보")
+    st.write(f"아이디: **{userId or '-'}**")
+    st.write(f"사용자이름: **{name or '-'}**")
+
+if st.sidebar.button("로그아웃"):
+    logout()
+    st.rerun()
+
+
 # -----------------------------
 # Utilities
 # -----------------------------
 class ApiError(RuntimeError):
     pass
 
-def _post(url: str, params: dict | None = None):
+def _post(url: str, json_data: dict | None = None):
     try:
-        r = requests.post(url, params=params, timeout=20)
+        r = requests.post(url, json=json_data, timeout=20)
         if r.status_code >= 400:
             raise ApiError(f"POST {url} failed: {r.status_code} {r.text}")
         return r.json()
@@ -57,12 +94,19 @@ def _human_dt(ts_str):
 
 def fetch_history(limit: int = 100, offset: int = 0):
     url = f"{API_BASE}"
-    return _post(url)
-
+    user_id = st.session_state.get("auth", {}).get("user")  # 로그인한 사용자 ID
+    payload = {
+        "user_id": userId
+    }
+    return _post(url, payload)
 
 def fetch_history_detail(uuid: str):
     url = f"{API_BASE}/history/{uuid}"
-    return _post(url)
+    payload = {
+        "user_id": userId
+    }
+
+    return _post(url, payload)
 
 # -----------------------------
 # Sidebar / Filters
@@ -119,12 +163,14 @@ if items:
     # Normalize rows for table display
     rows = []
     for it in items:
-        rows.append({
+        rows.append(
+            {
             "UUID": it.get("uuid") or it.get("UUID"),
             "MODEL_NAME": it.get("modelName") or it.get("MODEL_NAME"),
-            "CALL_DATE": it.get("callDate") or it.get("CALL_DATE"),
-            "CALL_TIME": it.get("callTime") or it.get("CALL_TIME"),
-        })
+            "CALL_DATE": datetime.datetime.strptime(it.get("callDate"), '%Y%m%d').date() or datetime.datetime.strptime(it.get("CALL_DATE"), '%Y%m%d').date(),
+            "CALL_TIME": datetime.datetime.strptime(it.get("callTime"), '%H%M%S').time() or datetime.datetime.strptime(it.get("CALL_TIME"), '%H%M%S').time()
+            }
+            )
 
     df = pd.DataFrame(rows)
     st.dataframe(df, hide_index=True, use_container_width=True)
@@ -148,7 +194,6 @@ if items:
             meta1, meta2, meta3 = st.columns(3)
             meta1.metric("UUID", sel_uuid)
             meta2.metric("MODEL", sel_obj.get("modelName") or sel_obj.get("MODEL_NAME"))
-            meta3.metric("생성 시각", _human_dt(sel_obj.get("createdAt") or sel_obj.get("CREATED_AT")))
 
             st.markdown("#### 🧑‍💻 프롬프트")
             st.code(sel_obj.get("promptText") or sel_obj.get("PROMPT_TEXT") or "", language="markdown")
@@ -158,8 +203,12 @@ if items:
 
             m1, m2, m3, m4 = st.columns(4)
             m1.write(f"**MODEL_NAME**: {sel_obj.get('modelName') or sel_obj.get('MODEL_NAME')}")
-            m2.write(f"**CALL_DATE**: {sel_obj.get('callDate') or sel_obj.get('CALL_DATE')}")
-            m3.write(f"**CALL_TIME**: {sel_obj.get('callTime') or sel_obj.get('CALL_TIME')}")
+            
+            m2.write(f"**CALL_DATE**: {datetime.datetime.strptime(sel_obj.get('callDate'), '%Y%m%d').date() or datetime.datetime.strptime(sel_obj.get('CALL_DATE'), '%Y%m%d').date()}")
+            
+            m3.write(f"**CALL_TIME**: {datetime.datetime.strptime(sel_obj.get('callTime'), '%H%M%S').time() or datetime.datetime.strptime(sel_obj.get('CALL_TIME'), '%H%M%S').time()}")
+
+
 
             # Download JSON
             import json
