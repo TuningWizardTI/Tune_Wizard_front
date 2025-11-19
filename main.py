@@ -39,7 +39,7 @@ with st.sidebar:
     st.write(f"사용자이름: **{name or '-'}**")
 
 if st.sidebar.button("로그아웃"):
-    logout(userid)
+    logout(userId)
     st.rerun()
 
 
