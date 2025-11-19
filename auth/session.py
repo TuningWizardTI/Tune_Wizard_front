@@ -121,10 +121,10 @@ def login(userId: str, password: str) -> tuple[bool, str | None]:
             st.session_state["auth"] = {"user": user, "loginAt": _now_utc().isoformat(), "userName" : name}
             touch_activity()
             return True, None
-        elif r.json()['result']['response'] in ('401', '403'):
+        elif r.json()['result']['response'] in ('401', '403','402'):
             return False, "아이디 또는 비밀번호가 올바르지 않습니다."
         else:
-            return False, f"로그인 실패 (HTTP {r.response})"
+            return False, f"로그인 실패 (HTTP {r.json()['result']['response']})"
     except requests.RequestException as e:
         return False, f"네트워크 오류: {e}"
 
